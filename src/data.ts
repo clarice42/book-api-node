@@ -6,7 +6,7 @@ interface Book {
   description: string;
 }
 
-const library: Book[] = [
+export const library: Book[] = [
   {
     id: 1,
     title: "Pride and Prejudice",
@@ -22,5 +22,3 @@ const library: Book[] = [
     description: "It's about a white whalle...",
   },
 ];
-
-module.exports = library;

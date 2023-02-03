@@ -1,12 +1,30 @@
-const http = require("http");
+import http from "http";
+import { BookController } from "./controller";
+
 const PORT = process.env.PORT || 5000;
 
-const data = require("./data.ts");
+const bookController = new BookController();
 
-const server = http.createServer(async (req: any, res: any) => {
+const server = http.createServer(async (req, res) => {
   if (req.url === "/books" && req.method === "GET") {
+    const books = await bookController.getBooks();
+
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.write("Sorry, no books are available yet...");
+    res.write(
+      JSON.stringify({
+        books: books,
+      })
+    );
+    res.end();
+  } else if (req.url === "/books" && req.method === "POST") {
+    const books = await bookController.getBooks();
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.write(
+      JSON.stringify({
+        books: books,
+      })
+    );
     res.end();
   } else {
     res.writeHead(404, { "Content-Type": "application/json" });
