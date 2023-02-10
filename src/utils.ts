@@ -1,16 +1,19 @@
 import { IncomingMessage } from "http";
 
-function getReqData(req: IncomingMessage) {
-    return new Promise((resolve, reject) => {
-        try {
-            let body = "";
+export function getReqData(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    try {
+      let body = "";
 
-            req.on("data", () => {
-                
-            })
+      req.on("data", (chunk): void => {
+        body += chunk;
+      });
 
-        } catch (error) {
-            
-        }
-    })
+      req.on("end", (): void => {
+        resolve(body);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
 }

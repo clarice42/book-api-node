@@ -1,5 +1,6 @@
 import http from "http";
 import { BookController } from "./controller";
+import { getReqData } from "./utils";
 
 const PORT = process.env.PORT || 5000;
 
@@ -17,12 +18,15 @@ const server = http.createServer(async (req, res) => {
     );
     res.end();
   } else if (req.url === "/books" && req.method === "POST") {
-    const books = await bookController.getBooks();
+    const dataString = await getReqData(req);
+    const data = JSON.parse(dataString);
+
+    const bookResponse = await bookController.createBook(data);
 
     res.writeHead(200, { "Content-Type": "application/json" });
     res.write(
       JSON.stringify({
-        books: books,
+        book: bookResponse,
       })
     );
     res.end();
