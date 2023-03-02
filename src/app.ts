@@ -21,14 +21,25 @@ const server = http.createServer(async (req, res) => {
     const dataString = await getReqData(req);
     const data = JSON.parse(dataString);
 
-    const bookResponse = await bookController.createBook(data);
-
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.write(
-      JSON.stringify({
-        book: bookResponse,
+    await bookController
+      .createBook(data)
+      .then((bookResponse) => {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.write(
+          JSON.stringify({
+            book: bookResponse,
+          })
+        );
       })
-    );
+      .catch((error) => {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.write(
+          JSON.stringify({
+            error: error,
+          })
+        );
+      });
+
     res.end();
   } else {
     res.writeHead(404, { "Content-Type": "application/json" });
