@@ -2,14 +2,15 @@ import { library } from "./data";
 import { IndexedObject } from "./definitions";
 
 export class BookController {
+  private bookValidator = new BookValidator();
+
   public async getBooks() {
     return new Promise((resolve, _) => resolve(library));
   }
 
   public async createBook(book: IndexedObject) {
     return new Promise((resolve, reject) => {
-      const bookValidator = new BookValidator();
-      const isBookValid = bookValidator.validate(book);
+      const isBookValid = this.bookValidator.validate(book);
 
       if (isBookValid.isValid) {
         const bookObject = {
@@ -26,6 +27,21 @@ export class BookController {
       } else {
         reject(isBookValid.message);
       }
+    });
+  }
+
+  public async deleteBook(bookId: string) {
+    return new Promise((resolve, reject): void => {
+      const bookToBeDeleted = library.findIndex(
+        (book) => book.id === Number(bookId)
+      );
+
+      if (this.bookValidator.bookExists(bookToBeDeleted)) {
+        library.splice(bookToBeDeleted, 1);
+        resolve(undefined);
+      }
+
+      reject("Invalid book id.");
     });
   }
 }
@@ -95,5 +111,9 @@ class BookValidator {
       isValid: true,
       message: [],
     };
+  }
+
+  public bookExists(index: number) {
+    return index !== -1;
   }
 }

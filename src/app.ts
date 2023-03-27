@@ -44,15 +44,20 @@ const server = http.createServer(async (req, res) => {
     res.end();
   } else if (req.url?.match(BOOK_WITH_ID) && req.method === "DELETE") {
     const bookId = BOOK_WITH_ID.exec(req.url)![1];
+    await bookController
+      .deleteBook(bookId)
+      .then(() => {
+        res.writeHead(200, { "Content-Type": "application/json" });
+      })
+      .catch((error) => {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.write(
+          JSON.stringify({
+            error: error,
+          })
+        );
+      });
 
-    console.log(bookId);
-
-    res.writeHead(200, { "Content-Type": "application/json" });
-    // res.write(
-    //   JSON.stringify({
-    //     books: books,
-    //   })
-    // );
     res.end();
   } else {
     res.writeHead(404, { "Content-Type": "application/json" });
