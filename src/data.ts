@@ -1,10 +1,4 @@
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  year: string;
-  description: string;
-}
+import { Book } from "./definitions";
 
 export const library: Book[] = [
   {

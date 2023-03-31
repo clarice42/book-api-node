@@ -1,5 +1,5 @@
 import { library } from "./data";
-import { IndexedObject } from "./definitions";
+import { IndexedObject, SuccessfulResponse } from "./definitions";
 
 export class BookController {
   private bookValidator = new BookValidator();
@@ -10,7 +10,7 @@ export class BookController {
 
   public async createBook(book: IndexedObject) {
     return new Promise((resolve, reject) => {
-      const isBookValid = this.bookValidator.validate(book);
+      const isBookValid = this.bookValidator.validateBook(book);
 
       if (isBookValid.isValid) {
         const bookObject = {
@@ -51,7 +51,7 @@ export class BookController {
         (book) => book.id === Number(bookId)
       );
       const newBookValidation =
-        this.bookValidator.validateBookUpdatedFields(bookInfo);
+        this.bookValidator.validateUpdatedBook(bookInfo);
 
       if (
         this.bookValidator.bookExists(bookToBeUpdated) &&
@@ -78,12 +78,18 @@ export class BookController {
 }
 
 class BookValidator {
+  private successfulDefaultResponse = {
+    isValid: true,
+    message: [],
+  };
+
+  private bookFields = ["title", "author", "year", "description"];
+
   private validateBookFields(book: IndexedObject): string[] {
     const bookKeys = Object.keys(book);
-    const bookFields = ["title", "author", "year", "description"];
     const missingFields: string[] = [];
 
-    bookFields.map((field: string): void => {
+    this.bookFields.forEach((field: string): void => {
       if (!bookKeys.includes(field)) {
         missingFields.push(`The mandatory field ${field} is missing.`);
       }
@@ -93,6 +99,7 @@ class BookValidator {
   }
 
   private validateBookTypes(book: IndexedObject): string[] {
+    const bookKeys = Object.keys(book);
     const missingTypes: string[] = [];
     const bookFieldsMap: IndexedObject = {
       title: "string",
@@ -101,7 +108,7 @@ class BookValidator {
       description: "string",
     };
 
-    Object.keys(book).map((property: string): void => {
+    bookKeys.forEach((property: string): void => {
       if (typeof book[property] !== bookFieldsMap[property]) {
         missingTypes.push(
           `The field ${property} has type ${typeof book[
@@ -114,10 +121,7 @@ class BookValidator {
     return missingTypes;
   }
 
-  public validate(book: IndexedObject): {
-    isValid: boolean;
-    message: string[];
-  } {
+  public validateBook(book: IndexedObject): SuccessfulResponse {
     const bookFieldsError = this.validateBookFields(book);
     const bookTypesError = this.validateBookTypes(book);
 
@@ -138,30 +142,30 @@ class BookValidator {
       };
     }
 
-    return {
-      isValid: true,
-      message: [],
-    };
+    return this.successfulDefaultResponse;
   }
 
-  public bookExists(index: number) {
+  public bookExists(index: number): boolean {
     return index !== -1;
   }
 
-  public validateBookUpdatedFields(newBookFields: IndexedObject): {
-    isValid: boolean;
-    message: string[];
-  } {
-    const newBookFieldsError: string[] = [];
+  private validateNewBookFields(newBookFields: IndexedObject): string[] {
+    const bookKeys = Object.keys(newBookFields);
+    const missingFields: string[] = [];
 
-    Object.keys(newBookFields).forEach((newBookFieldsKey: string) => {
+    bookKeys.forEach((newBookFieldsKey: string) => {
       if (!newBookFields[newBookFieldsKey]) {
-        newBookFieldsError.push(
+        missingFields.push(
           `The mandatory field ${newBookFieldsKey} is missing.`
         );
       }
     });
 
+    return missingFields;
+  }
+
+  public validateUpdatedBook(newBookFields: IndexedObject): SuccessfulResponse {
+    const newBookFieldsError = this.validateNewBookFields(newBookFields);
     const newBookTypesError = this.validateBookTypes(newBookFields);
 
     const newBookHasAllProperties = newBookFieldsError.length === 0;
@@ -181,9 +185,6 @@ class BookValidator {
       };
     }
 
-    return {
-      isValid: true,
-      message: [],
-    };
+    return this.successfulDefaultResponse;
   }
 }
