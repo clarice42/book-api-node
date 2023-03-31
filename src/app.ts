@@ -59,6 +59,32 @@ const server = http.createServer(async (req, res) => {
       });
 
     res.end();
+  } else if (req.url?.match(BOOK_WITH_ID) && req.method === "PUT") {
+    const bookId = BOOK_WITH_ID.exec(req.url)![1];
+
+    const dataString = await getReqData(req);
+    const data = JSON.parse(dataString);
+
+    await bookController
+    .updateBook(bookId, data)
+    .then((bookResponse) => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.write(
+        JSON.stringify({
+          book: bookResponse,
+        })
+      );
+    })
+    .catch((error) => {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.write(
+        JSON.stringify({
+          error: error,
+        })
+      );
+    });
+
+    res.end();
   } else {
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ message: "Route not found" }));

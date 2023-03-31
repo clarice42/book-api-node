@@ -44,6 +44,37 @@ export class BookController {
       reject("Invalid book id.");
     });
   }
+
+  public async updateBook(bookId: string, bookInfo: IndexedObject) {
+    return new Promise((resolve, reject): void => {
+      const bookToBeUpdated = library.findIndex(
+        (book) => book.id === Number(bookId)
+      );
+      const newBookValidation =
+        this.bookValidator.validateBookUpdatedFields(bookInfo);
+
+      if (
+        this.bookValidator.bookExists(bookToBeUpdated) &&
+        newBookValidation.isValid
+      ) {
+        let bookUpdated = library[bookToBeUpdated];
+
+        bookUpdated = {
+          id: bookUpdated.id,
+          title: bookInfo.title || bookUpdated.title,
+          author: bookInfo.author || bookUpdated.author,
+          year: bookInfo.year || bookUpdated.year,
+          description: bookInfo.description || bookUpdated.description,
+        };
+
+        library[bookToBeUpdated] = bookUpdated;
+
+        resolve(library[bookToBeUpdated]);
+      } else {
+        reject(newBookValidation.message);
+      }
+    });
+  }
 }
 
 class BookValidator {
@@ -70,7 +101,7 @@ class BookValidator {
       description: "string",
     };
 
-    Object.keys(bookFieldsMap).map((property: string): void => {
+    Object.keys(book).map((property: string): void => {
       if (typeof book[property] !== bookFieldsMap[property]) {
         missingTypes.push(
           `The field ${property} has type ${typeof book[
@@ -115,5 +146,44 @@ class BookValidator {
 
   public bookExists(index: number) {
     return index !== -1;
+  }
+
+  public validateBookUpdatedFields(newBookFields: IndexedObject): {
+    isValid: boolean;
+    message: string[];
+  } {
+    const newBookFieldsError: string[] = [];
+
+    Object.keys(newBookFields).forEach((newBookFieldsKey: string) => {
+      if (!newBookFields[newBookFieldsKey]) {
+        newBookFieldsError.push(
+          `The mandatory field ${newBookFieldsKey} is missing.`
+        );
+      }
+    });
+
+    const newBookTypesError = this.validateBookTypes(newBookFields);
+
+    const newBookHasAllProperties = newBookFieldsError.length === 0;
+    const newBookHasCorrectTypes = newBookTypesError.length === 0;
+
+    if (!newBookHasAllProperties) {
+      return {
+        isValid: false,
+        message: newBookFieldsError,
+      };
+    }
+
+    if (!newBookHasCorrectTypes) {
+      return {
+        isValid: false,
+        message: newBookTypesError,
+      };
+    }
+
+    return {
+      isValid: true,
+      message: [],
+    };
   }
 }
